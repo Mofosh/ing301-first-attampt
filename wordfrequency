@@ -1,0 +1,96 @@
+from pathlib import Path
+import sys
+
+# Dette er start-koden til den første programmeringsoppgaven i ING 301
+
+def read_file(file_name):
+    """
+    Får et filnavn som argument og gir tilbake en liste med linjer fra filen.
+    Linjeskift fjernes.
+    """
+    with open(file_name, 'r', encoding='utf-8') as f:
+        # Bare ta med linjer som ikke er tomme etter stripping
+        return [line.strip() for line in f.readlines() if line.strip() != ""]
+
+def lines_to_words(lines):
+    """
+    Deler opp linjene i ord. Alle linjer splittes på blanktegn.
+    Fjern tegnsetting (punktum, kolon, semikolon, komma, spørsmålstegn og utropstegn)
+    og konverterer alle ord til små bokstaver.
+    Tomme ord blir ikke med.
+    """
+    words = []
+    for line in lines:
+        for word in line.split():
+            # Fjern de spesifiserte tegnene i starten og slutten
+            cleaned = word.strip(".,:;?!")
+            cleaned = cleaned.lower()
+            if cleaned != "":
+                words.append(cleaned)
+    return words
+
+def compute_frequency(words):
+    """
+    Tar en liste med ord og lager en frekvenstabell (dictionary)
+    der nøklene er ordene og verdiene er antall forekomster.
+    """
+    freq = {}
+    for word in words:
+        freq[word] = freq.get(word, 0) + 1
+    return freq
+
+FILL_WORDS = ['og', 'dei', 'i', 'eg', 'som', 'det', 'han', 'til', 'skal', 'på', 'for', 'då', 'ikkje', 'var', 'vera']
+
+def remove_filler_words(frequency_table):
+    """
+    Fjerner alle ord fra frekvenstabellen som finnes i FILL_WORDS.
+    """
+    new_table = {}
+    for word, count in frequency_table.items():
+        if word not in FILL_WORDS:
+            new_table[word] = count
+    return new_table
+
+def largest_pair(par_1, par_2):
+    """
+    Sammenligner to tupler (ord, antall). Returnerer det tuplet der antallet er størst.
+    Hvis tallene er like, returneres det første paret.
+    """
+    if par_1[1] >= par_2[1]:
+        return par_1
+    else:
+        return par_2
+
+def find_most_frequent(frequency_table):
+    """
+    Finner og returnerer det ordet som har den høyeste frekvensen i frekvenstabellen.
+    """
+    most = None
+    for word, count in frequency_table.items():
+        current_pair = (word, count)
+        if most is None:
+            most = current_pair
+        else:
+            most = largest_pair(most, current_pair)
+    return most[0]
+
+############################################################
+#                                                          #
+# Her slutter koden relevant for oppgaven                  #
+#                                                          #
+############################################################
+
+def main():
+    if len(sys.argv) > 1 and Path(sys.argv[1]).exists():
+        file = sys.argv[1]
+    else:
+        file = str(Path(__file__).parent.absolute()) + "/voluspaa.txt"
+    lines = read_file(file)
+    words = lines_to_words(lines)
+    table = compute_frequency(words)
+    table = remove_filler_words(table)
+    most_frequent = find_most_frequent(table)
+    print(f"The most frequent word in {file} is '{most_frequent}'")
+
+if __name__ == '__main__':
+    main()
